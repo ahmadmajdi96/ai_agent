@@ -4,7 +4,7 @@ set -e
 ENVIRONMENT=$1
 COMMIT_SHA=$2
 APP_NAME="ai_agent"
-REGISTRY_URL="157.180.69.112:9991"
+REGISTRY_URL="157.180.69.112:5000"
 
 echo "🚀 Deploying $APP_NAME to $ENVIRONMENT environment..."
 echo "Commit: $COMMIT_SHA"
