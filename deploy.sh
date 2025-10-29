@@ -4,7 +4,7 @@ set -e
 ENVIRONMENT=$1
 COMMIT_SHA=$2
 APP_NAME="ai_agent"
-REGISTRY_URL="157.180.69.112:5000"
+REGISTRY_URL="tcp://157.180.69.112:5000"
 
 echo "🚀 Deploying $APP_NAME to $ENVIRONMENT environment..."
 echo "Commit: $COMMIT_SHA"
@@ -51,7 +51,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik-public"
-      - "traefik.http.services.$STACK_NAME.loadbalancer.server.port=8000"
+      - "traefik.http.services.$STACK_NAME.loadbalancer.server.port=9991"
       - "traefik.http.routers.$STACK_NAME.rule=Host(\`$DOMAIN\`)"
       - "traefik.http.routers.$STACK_NAME.entrypoints=web"
 
