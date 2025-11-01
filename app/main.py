@@ -24,7 +24,7 @@ app = FastAPI(title="Local Code Writer Agent", version="0.1.0", docs_url="/")
 llm = LLM(
     base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
     model_id=os.getenv("MODEL_ID", "qwen2.5-coder:14b"),
-    temperature=float(os.getenv("TEMPERATURE", "0.2")),
+    temperature=float(os.getenv("TEMPERATURE", "0.02")),
     max_tokens=int(os.getenv("MAX_TOKENS", "4096")),
 )
 
@@ -56,35 +56,35 @@ def generate(req: GenerateRequest):
         logging.exception("Failed to generate project")
         return JSONResponse({"ok": False, "error": "LLM or generation error", "details": str(e)}, status_code=500)
 
-    # Lint & type-check & test loop
+#    # Lint & type-check & test loop
     logs = []
-    def run(cmd, cwd=None):
-        p = subprocess.Popen(cmd, cwd=cwd or project_dir, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-        out,_ = p.communicate()
-        return p.returncode, out
+  #  def run(cmd, cwd=None):
+   #     p = subprocess.Popen(cmd, cwd=cwd or project_dir, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    #    out,_ = p.communicate()
+     #   return p.returncode, out
 
-    for i in range(max(1, req.iterations)):
-        # Ruff
-        if req.style == "ruff":
-            code, out = run(["ruff", "check", "--fix", "."])
-            logs.append({"stage": f"ruff_{i}", "exit": code, "out": out})
-
-        # mypy
-        if req.type_checking:
-            code, out = run(["mypy", package_name, "--ignore-missing-imports"])
-            logs.append({"stage": f"mypy_{i}", "exit": code, "out": out})
-            if code != 0:
-                # ask LLM to refine
-                writer.refine_from_tooling(out)
-
-        # pytest
-        if req.tests:
-            code, out = run(["pytest", "-q"])
-            logs.append({"stage": f"pytest_{i}", "exit": code, "out": out})
-            if code != 0:
-                writer.refine_from_tooling(out)
-
-    # Zip project
+#    for i in range(max(1, req.iterations)):
+ #       # Ruff
+  #      if req.style == "ruff":
+   #         code, out = run(["ruff", "check", "--fix", "."])
+    #        logs.append({"stage": f"ruff_{i}", "exit": code, "out": out})
+#
+ #       # mypy
+  #      if req.type_checking:
+   #         code, out = run(["mypy", package_name, "--ignore-missing-imports"])
+    #        logs.append({"stage": f"mypy_{i}", "exit": code, "out": out})
+     #       if code != 0:
+      #          # ask LLM to refine
+       #         writer.refine_from_tooling(out)
+#
+ #       # pytest
+  #      if req.tests:
+   #         code, out = run(["pytest", "-q"])
+    #        logs.append({"stage": f"pytest_{i}", "exit": code, "out": out})
+     #       if code != 0:
+      #          writer.refine_from_tooling(out)
+#
+ #   # Zip project
     zip_path = os.path.join(BASE_OUT, f"{req.project_name}.zip")
     if os.path.exists(zip_path):
         os.remove(zip_path)

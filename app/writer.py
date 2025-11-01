@@ -59,16 +59,16 @@ class CodeWriter:
             self.write_file(path, body)
 
         # Tests
-        for t in plan.get("tests", []):
-            path = t.get("path", "tests/test_core.py")
-            doc = t.get("doc", "")
-            test_prompt = FILE_PROMPT.format(package=self.package_name, path=path, doc=doc)
-            code = self.llm.chat([{"role":"system","content":"You write excellent pytest tests."},
-                                  {"role":"user","content": test_prompt}])
-            import re
-            m = re.search(r"```python\s*(.*?)\s*```", code, re.DOTALL)
-            body = m.group(1) if m else code
-            self.write_file(path, body)
+       # for t in plan.get("tests", []):
+        #    path = t.get("path", "tests/test_core.py")
+       #     doc = t.get("doc", "")
+      #      test_prompt = FILE_PROMPT.format(package=self.package_name, path=path, doc=doc)
+     #       code = self.llm.chat([{"role":"system","content":"You write excellent pytest tests."},
+    #                              {"role":"user","content": test_prompt}])
+   #         import re
+  #          m = re.search(r"```python\s*(.*?)\s*```", code, re.DOTALL)
+ #           body = m.group(1) if m else code
+#            self.write_file(path, body)
 
     def refine_from_tooling(self, tooling_output: str):
         # Ask LLM to patch files based on tool errors

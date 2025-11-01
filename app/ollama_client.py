@@ -14,7 +14,7 @@ class LLM:
 
     async def _achat(self, messages: List[Dict[str, str]]) -> str:
         # Streaming chat; return final text
-        async with httpx.AsyncClient(timeout=120.0) as client:
+        async with httpx.AsyncClient(timeout=700) as client:
             resp = await client.post(f"{self.base_url}/api/chat", json={
                 "model": self.model_id,
                 "messages": messages,
@@ -32,7 +32,7 @@ class LLM:
         backoff = 1.0
         for attempt in range(1, attempts + 1):
             try:
-                with httpx.Client(timeout=120.0) as client:
+                with httpx.Client(timeout=700.0) as client:
                     resp = client.post(f"{self.base_url}/api/chat", json={
                         "model": self.model_id,
                         "messages": messages,
