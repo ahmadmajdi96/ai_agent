@@ -1,6 +1,6 @@
+version: '3.8'
 
 services:
-  # Optional local LLM runtime. You can also point the agent to an external Ollama.
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
@@ -10,12 +10,9 @@ services:
     volumes:
       - ollama:/root/.ollama
     environment:
-      # MODEL_ID can be overridden when running compose: MODEL_ID="<model>" ./deploy.sh
       MODEL_ID: "${MODEL_ID:-qwen2.5-coder:14b}"
-    # Start Ollama and auto-pull the configured model. Use entrypoint (not command) so we don't invoke Ollama subcommands.
     entrypoint: ["/bin/sh","-lc","ollama serve & sleep 4 && if [ -n \"$MODEL_ID\" ]; then ollama pull \"$MODEL_ID\" || true; fi && tail -f /dev/null"]
     healthcheck:
-      # Wait until the server reports the configured model as available via /api/tags
       test: ["CMD-SHELL", "curl -sSf http://localhost:11434/api/tags | grep -q \"${MODEL_ID:-qwen2.5-coder:14b}\" || exit 1"]
       interval: 10s
       timeout: 20s
@@ -26,14 +23,17 @@ services:
         condition: on-failure
       resources:
         reservations:
-          # Reserve memory for heavy models; ensure your Hetzner node has >= 12GiB free
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
           memory: 12G
         limits:
           memory: 14G
-    # Uncomment to auto-pull a model on start (best to pull manually to see progress).
-    # environment:
-    #   - OLLAMA_KEEP_ALIVE=24h
-    # command: ["/bin/sh","-lc","ollama serve & sleep 4 && ollama pull qwen2.5-coder:14b && tail -f /dev/null"]
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
   code-agent:
     build:
@@ -44,7 +44,6 @@ services:
     depends_on:
       - ollama
     environment:
-      # Point to the Ollama service on the compose network (use service name)
       OLLAMA_BASE_URL: "http://ollama:11434"
       MODEL_ID: "${MODEL_ID:-qwen2.5-coder:14b}"
       MAX_TOKENS: "4096"
@@ -58,9 +57,17 @@ services:
         condition: on-failure
       resources:
         reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
           memory: 512M
         limits:
           memory: 1G
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
 volumes:
   ollama:
